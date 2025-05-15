@@ -1,6 +1,7 @@
 from itertools import combinations
 from pysat.solvers import Glucose3
 import time
+import copy
 
 # Doc du lieu tu tep, tra ve mang
 def read_input(filename):
@@ -152,7 +153,7 @@ def main():
     execution_times = {}
     
     # Tao bang copy cho thuat toan pySAT
-    pySAT_solution = grid.copy() # ban sao
+    pySAT_solution = copy.deepcopy(grid) # ban sao
     # Bat dau tinh thoi gian
     start_time = time.time()
     # Su dung thu vien pySAT
@@ -183,7 +184,7 @@ def main():
     execution_times["PySAT"] = end_time - start_time
           
     # Tao bang copy cho thuat toan brute force  
-    brute_force_solution = grid.copy()
+    brute_force_solution = copy.deepcopy(grid)
     # Bat dau tinh thoi gian
     start_time = time.time()
     # Su dung thuat toan brute force
@@ -199,7 +200,7 @@ def main():
     execution_times["Brute Force"] = end_time - start_time
     
     # Tao bang copy cho thuat toan backtracking
-    backtracking_solution = grid.copy()
+    backtracking_solution = copy.deepcopy(grid)
     # Bat dau tinh thoi gian
     start_time = time.time()
     # Su dung thuat toan backtracking              

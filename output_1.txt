@@ -1,18 +1,21 @@
 PySAT solution:
-3, T, 2, G
-T, T, 2, G
-T, 3, 1, G
-execution_time: 0.0002908707
+2, G, G, 2
+G, G, G, G
+G, G, G, G
+G, G, G, 2
+execution_time: 0.0003883839
 
 Brute Force solution:
-3, T, 2, G
-T, T, 2, G
-T, 3, 1, G
-execution_time: 0.0001223087
+2, T, T, 2
+T, G, T, G
+G, G, T, T
+G, G, G, 2
+execution_time: 0.0069468021
 
 Backtracking solution:
-3, T, 2, G
-T, T, 2, G
-T, 3, 1, G
-execution_time: 0.0001404285
+2, T, T, 2
+T, G, T, G
+T, T, T, T
+T, T, G, 2
+execution_time: 0.0005195141
 
