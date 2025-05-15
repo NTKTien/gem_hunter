@@ -1,0 +1,24 @@
+PySAT solution:
+T, 3, T, 3, 1
+1, G, T, T, 3
+1, G, 4, T, T
+T, 2, 2, T, 4
+T, G, G, G, T
+execution_time: 0.0005643368
+
+Brute Force solution:
+T, 3, T, 3, 1
+1, G, T, T, 3
+1, G, 4, T, T
+T, 2, 2, T, 4
+T, G, G, G, T
+execution_time: 0.1696548462
+
+Backtracking solution:
+T, 3, T, 3, 1
+1, G, T, T, 3
+1, G, 4, T, T
+T, 2, 2, T, 4
+T, G, G, G, T
+execution_time: 0.0047543049
+

@@ -61,11 +61,11 @@ def main():
         for row in question_grid:
             f.write(", ".join(str(cell) for cell in row) + "\n")
             
-    # Ghi dap an ma tran vao file            
-    with open(f"demo_answer_{fo}", "w") as f:
-        for row in answer_grid:
-            f.write(", ".join(str(cell) for cell in row) + "\n")
-       
+    # # Ghi dap an ma tran vao file            
+    # with open(f"demo_answer_{fo}", "w") as f:
+    #     for row in answer_grid:
+    #         f.write(", ".join(str(cell) for cell in row) + "\n")
+
     print(f"Ma tran da duoc luu vao file {fo}")
 
 if __name__ == "__main__":

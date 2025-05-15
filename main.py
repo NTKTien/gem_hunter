@@ -2,6 +2,8 @@ from itertools import combinations
 from pysat.solvers import Glucose3
 import time
 import copy
+import sys
+from multiprocessing import Process
 
 # Doc du lieu tu tep, tra ve mang
 def read_input(filename):
@@ -20,7 +22,7 @@ def read_input(filename):
 def write_output(filename, grid):
     with open(filename, "w") as f:
         for row in grid:
-            f.write(", ".join(map(str, row)) + "\n")        
+            f.write(", ".join(map(str, row)) + "\n")  
 
 # Tim o trong xung quanh mot vi tri
 def find_empty_cells_around(grid, pos):
@@ -136,14 +138,14 @@ def backtracking(grid, empty_cells, index):
         return is_consistent(grid), grid
     # Lay vi tri o trong
     i, j = empty_cells[index]
-    # Gia su (i, j) la T
-    grid[i][j] = "T"
+    # Gia su (i, j) la G    
+    grid[i][j] = "G"
     if is_consistent(grid):
         result, solution = backtracking(grid, empty_cells, index + 1)
         if result:
             return True, solution
-    # Gia su (i, j) la G    
-    grid[i][j] = "G"
+    # Gia su (i, j) la T
+    grid[i][j] = "T"
     if is_consistent(grid):
         result, solution = backtracking(grid, empty_cells, index + 1)
         if result:
@@ -152,93 +154,91 @@ def backtracking(grid, empty_cells, index):
     grid[i][j] = "_"
     return False, None
 
-def main():
-    # Gan ten tep
-    fi = "input_1.txt" # de bai
-    fo = "output_1.txt" # loi giai
-    
-    # Doc du lieu tu tep vao mang
-    grid = read_input(fi)
-    
-    # Ghi nhan ket qua cac thuat toan
-    solutions = {}
-    execution_times = {}
-    
-    # Tao bang copy cho thuat toan pySAT
-    pySAT_solution = copy.deepcopy(grid) # ban sao
-    # Bat dau tinh thoi gian
-    start_time = time.time()
-    # Su dung thu vien pySAT
+def SAT_solver(grid):
     # Tao CNFs
-    cnfs = generate_CNFs(pySAT_solution)
+    cnfs = generate_CNFs(grid)
     # Them cac menh de rang buoc
     solver = Glucose3()
     for cnf in cnfs:
         solver.add_clause(cnf)
-    # Giai
+    # Gan gia tri neu tim duoc solution
     if solver.solve():
         model = solver.get_model()
-        for i in range(len(pySAT_solution)):
-            for j in range(len(pySAT_solution[0])):
-                if pySAT_solution[i][j] == "_":
-                    e = encode_pos((i, j), pySAT_solution)
+        for i in range(len(grid)):
+            for j in range(len(grid[0])):
+                if grid[i][j] == "_":
+                    e = encode_pos((i, j), grid)
                     if e in model:
-                        pySAT_solution[i][j] = "T"
+                        grid[i][j] = "T"
                     else:
-                        pySAT_solution[i][j] = "G"
-        solutions["PySAT"] = pySAT_solution
-        print("SAT SOLUTION FOUND")
-    else:
-        solutions["PySAT"] = None
-        print("NO SOLUTION WITH SAT")
-    # Ket thuc tinh thoi gian
-    end_time = time.time()
-    execution_times["PySAT"] = end_time - start_time
-          
-    # Tao bang copy cho thuat toan brute force  
-    brute_force_solution = copy.deepcopy(grid)
-    # Bat dau tinh thoi gian
-    start_time = time.time()
-    # Su dung thuat toan brute force
-    is_possible, brute_force_solution = brute_force(brute_force_solution)
-    if is_possible:
-        solutions["Brute Force"] = brute_force_solution
-        print("BRUTE FORCE SOLUTION FOUND")
-    else:
-        solutions["Brute Force"] = None
-        print("NO SOLUTION WITH BRUTE FORCE")
-    # Ket thuc tinh thoi gian
-    end_time = time.time()
-    execution_times["Brute Force"] = end_time - start_time
+                        grid[i][j] = "G"
+        return True, grid
+    return False, None
+
+def run_algorithm(fi, fo):
+    # Gioi han stack
+    sys.setrecursionlimit(100000)
     
-    # Tao bang copy cho thuat toan backtracking
-    backtracking_solution = copy.deepcopy(grid)
-    # Bat dau tinh thoi gian
+    # Doc du lieu tu tep vao mang
+    grid = read_input(fi)
+    
+    # Bat dau thoi gian
     start_time = time.time()
-    # Su dung thuat toan backtracking              
-    is_possible, backtracking_solution = backtracking(backtracking_solution, find_empty_cells(backtracking_solution), 0)
-    if is_possible:
-        solutions["Backtracking"] = backtracking_solution
-        print("BACKTRACKING SOLUTION FOUND")
+    
+    # # ---------------- PY-SAT ----------------
+    # # Uncomment khoi nay de su dung pySAT
+    # try:
+    #     is_possible, solution = SAT_solver(grid)
+    #     if is_possible:
+    #         print(f"SAT SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}")
+    #         write_output(fo, solution)
+    #     else:
+    #         print("NO SOLUTION WITH SAT\n")
+    # except RecursionError:
+    #     print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}.")
+    #     return
+    
+    # # # ---------------- BRUTE FORCE ----------------
+    # # Uncomment khoi nay de su dung Brute Force    
+    # try:
+    #     is_possible, solution = brute_force(grid)
+    #     if is_possible:
+    #         print(f"BRUTE FORCE SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}")
+    #         write_output(fo, solution)
+    #     else:
+    #         print("NO SOLUTION WITH BRUTE FORCE\n")
+    # except RecursionError:
+    #     print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}.")
+    #     return
+    
+    # ---------------- BACKTRACKING ----------------
+    # Uncomment khoi nay de su dung Backtracking
+    try:
+        is_possible, solution = backtracking(grid, find_empty_cells(grid), 0)
+        if is_possible:
+            print(f"BACKTRACKING SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}")
+            write_output(fo, solution)
+        else:
+            print("NO SOLUTION WITH BACKTRACKING\n")
+    except RecursionError:
+        print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}.")
+        return
+
+def main():
+    # Gan ten tep
+    fi = "input_2.txt" # de bai
+    fo = "output_2.txt" # loi giai
+    
+    # Khoi tao process
+    p = Process(target=run_algorithm, args=(fi, fo))
+    p.start()
+    p.join(timeout=120) # Thoi gian cho phep chay thuat toan
+
+    if p.is_alive():
+        p.terminate()
+        print("RUNNING TIME TOO LONG. TIME OUT: 120s")
     else:
-        solutions["Backtracking"] = None
-        print("NO SOLUTION WITH BACKTRACKING")
-    # Ket thuc tinh thoi gian
-    end_time = time.time()
-    execution_times["Backtracking"] = end_time - start_time
-        
-    # Ghi tat ca ket qua ra tep
-    with open(fo, "w") as f:
-        for algorithm, solution in solutions.items():
-            if solution:
-                f.write(f"{algorithm} solution:\n")
-                for row in solution:
-                    f.write(", ".join(map(str, row)) + "\n")
-                f.write(f"execution_time: {execution_times[algorithm]:.10f}\n\n")
-            else:
-                f.write(f"{algorithm} NO SOLUTION\n\n")
-                
-    print("RESULTS ARE SUCCESSFULLY WRITTEN TO FILE\n")  
+        print("RUN SUCCESSFULLY")
 
 if __name__ == "__main__":
     main()
