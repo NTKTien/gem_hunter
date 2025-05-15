@@ -61,11 +61,23 @@ def generate_CNFs(grid):
         if len(empty_cells) == grid[pos[0]][pos[1]]:
             for empty_cell in empty_cells:
                 CNFs.append([encode_pos(empty_cell, grid)])
-        # To hop CNF (chung minh trong bao cao)
+        # To hop CNF
         else:
+            """
+            Gia su co k o trong xung quanh vi tri (i, j) va trong so = n (k > n)
+            So luong Trap xung quanh vi tri (i, j) = n <==> so luong Gem xung quanh vi tri (i, j) = m (m = k - n)
+            Can thoa man hai menh de:
+            + n Trap -> m Gem : Voi moi to hop chap n + 1 cua k, luon co it nhat 1 Gem 
+            + m Gem -> n Trap: Voi moi to hop chap m + 1 cua k, luon co it nhat 1 Trap
+            """
+            # CNF cho n Trap -> m Gem
             combinations_list = list(combinations(empty_cells, grid[pos[0]][pos[1]] + 1))
             for combination in combinations_list:
                 CNFs.append([-encode_pos(empty_cell, grid) for empty_cell in combination])
+            # CNF cho m Gem -> n Trap
+            combinations_list = list(combinations(empty_cells, len(empty_cells) - grid[pos[0]][pos[1]] + 1))
+            for combination in combinations_list:
+                CNFs.append([encode_pos(empty_cell, grid) for empty_cell in combination])
     return CNFs
 
 # Tra ve true khi so luong T xung quanh vi tri (i, j) khop voi trong so
