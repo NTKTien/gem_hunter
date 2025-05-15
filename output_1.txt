@@ -1,3 +1,18 @@
+PySAT solution:
 3, T, 2, G
 T, T, 2, G
 T, 3, 1, G
+execution_time: 0.0002908707
+
+Brute Force solution:
+3, T, 2, G
+T, T, 2, G
+T, 3, 1, G
+execution_time: 0.0001223087
+
+Backtracking solution:
+3, T, 2, G
+T, T, 2, G
+T, 3, 1, G
+execution_time: 0.0001404285
+
