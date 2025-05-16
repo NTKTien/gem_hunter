@@ -80,15 +80,6 @@ def generate_CNF(grid):
                 CNFs.append([encode_pos(empty_cell, grid) for empty_cell in combination])
     return CNFs
 
-# Tra ve mang cac vi tri o trong
-def find_empty_cells(grid):
-    empty_cells = []
-    for i in range(len(grid)):
-        for j in range(len(grid[i])):
-            if grid[i][j] == "_":
-                empty_cells.append((i, j))
-    return empty_cells
-
 # Giai CNF bang Brute Force
 def brute_force_solve(CNF_original):
     # Tao ban sao CNF
@@ -217,119 +208,6 @@ def backtracking_solve(CNF_original):
         # CAC MENH DE DA THOA MAN
         return model 
         
-    # Chay thuat toan DPLL
-    return DPLL_solve(CNF, [])
-
-def backtracking_solve_fixed(CNF_original):
-    # Tao ban sao CNF
-    CNF = copy.deepcopy(CNF_original)
-    # Lap danh sach bien logic
-    variables = set()
-    for clause in CNF:
-        for literal in clause:
-            variables.add(abs(literal))
-    variables = list(variables)
-    
-    # Don gian hoa CNF khi mot gia tri duoc xac dinh
-    def simplify_CNF(CNF, literal):
-        new_CNF = []
-        for clause in CNF:
-            if literal in clause:  # Luoc cac menh de da thoa man
-                continue
-            new_clause = [lit for lit in clause if lit != -literal]
-            new_CNF.append(new_clause)
-        return new_CNF
-    
-    def DPLL_solve(CNF, model):
-        # Tra ve model khi tat ca menh de da duoc thoa man
-        if not CNF:
-            return model
-            
-        # Khong the thoa man CNF neu co menh de rong
-        if any(len(clause) == 0 for clause in CNF):
-            return None
-        
-        # ---- CẢI TIẾN 1: UNIT PROPAGATION HIỆU QUẢ HƠN ----
-        # Xử lý các unit clauses cho đến khi không còn
-        change = True
-        while change:
-            change = False
-            unit_clauses = [clause[0] for clause in CNF if len(clause) == 1]
-            if not unit_clauses:
-                break
-                
-            for unit in unit_clauses:
-                if -unit in model:
-                    return None  # Mâu thuẫn phát hiện
-                if unit in model:
-                    continue
-                    
-                model.append(unit)
-                CNF = simplify_CNF(CNF, unit)
-                change = True
-                
-                # Kiểm tra lại sau khi đơn giản hóa
-                if not CNF:
-                    return model
-                if any(len(clause) == 0 for clause in CNF):
-                    return None
-        
-        # ---- CẢI TIẾN 2: PURE LITERAL ELIMINATION HIỆU QUẢ HƠN ----
-        # Tìm pure literals (chỉ xuất hiện dạng dương hoặc dạng âm)
-        all_literals = [lit for clause in CNF for lit in clause]
-        pure_literals = []
-        
-        for var in variables:
-            if var not in model and -var not in model:  # Chưa xác định
-                pos_appears = var in all_literals
-                neg_appears = -var in all_literals
-                
-                if pos_appears and not neg_appears:  # Chỉ xuất hiện dạng dương
-                    pure_literals.append(var)
-                elif neg_appears and not pos_appears:  # Chỉ xuất hiện dạng âm
-                    pure_literals.append(-var)
-        
-        # Áp dụng pure literals
-        if pure_literals:
-            for pure in pure_literals:
-                model.append(pure)
-                CNF = simplify_CNF(CNF, pure)
-            
-            # Kiểm tra lại sau khi đơn giản hóa
-            if not CNF:
-                return model
-        
-        # ---- CẢI TIẾN 3: CHỌN BIẾN THEO HEURISTIC ----
-        # Nếu CNF vẫn còn, chọn biến để phân nhánh
-        if CNF:
-            # Heuristic: Chọn biến xuất hiện nhiều nhất trong CNF
-            var_counts = {}
-            for clause in CNF:
-                for lit in clause:
-                    var = abs(lit)
-                    if var not in model and -var not in model:  # Chưa xác định
-                        var_counts[var] = var_counts.get(var, 0) + 1
-            
-            if not var_counts:  # Mọi biến đã được xác định
-                return model
-                
-            # Chọn biến xuất hiện nhiều nhất
-            next_var = max(var_counts.items(), key=lambda x: x[1])[0]
-            
-            # Thử với dạng +
-            model_pos = model.copy()
-            model_pos.append(next_var)
-            result = DPLL_solve(simplify_CNF(CNF, next_var), model_pos)
-            if result:
-                return result
-                
-            # Thử với dạng -
-            model_neg = model.copy()
-            model_neg.append(-next_var)
-            return DPLL_solve(simplify_CNF(CNF, -next_var), model_neg)
-        
-        return model  # Tất cả mệnh đề đã được thỏa mãn
-    
     # Chay thuat toan DPLL
     return DPLL_solve(CNF, [])
 

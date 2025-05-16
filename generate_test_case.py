@@ -3,7 +3,10 @@ import copy
 
 # Tra ve ngau nhien T, G hoac trong so
 def random_element():
-    return random.choice([random.choice(["T", "G"]), "x"])
+    values = ['T', 'G', 'x']
+    probabilities = [0.2, 0.1, 0.7]
+    result = random.choices(values, weights=probabilities, k=1)[0]
+    return result
 
 def count_traps_around(grid, pos):
     num_traps = 0
@@ -41,8 +44,6 @@ def generate_grid(n):
                 
     return question_grid, answer_grid
     
-    
-
 def main():
     # Nhap kich thuoc ma tran vuong
     n = int(input("Nhap kich thuoc ma tran vuong: "))
