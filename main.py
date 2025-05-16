@@ -230,8 +230,8 @@ def run_algorithm(fi, fo):
 
 def main():
     # Gan ten tep
-    fi = "input_7.txt" # de bai
-    fo = "output_7.txt" # loi giai
+    fi = "testcases/input_1.txt" # de bai
+    fo = "output_1.txt" # loi giai
     
     # Khoi tao process
     p = Process(target=run_algorithm, args=(fi, fo))
@@ -240,7 +240,7 @@ def main():
 
     if p.is_alive():
         p.terminate()
-        print("TIMEOUT: MAXIMUM EXECUTION TIME IS 60s")
+        print("TIMEOUT!")
     else:
         print("RUN SUCCESSFULLY")
 

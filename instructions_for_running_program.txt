@@ -1,0 +1,15 @@
+BƯỚC 1: Mở file main.py chứa mã chương trình
+
+BƯỚC 2: Chọn thuật toán sử dụng
+- Chương trình được cấu hình mặc định để chạy thư viện pysat
+- Tại hàm run_algorithm, có thể thay đổi thuật toán khác:
+        + Comment khối code của thuật toán đang hoạt động
+        + Uncomment khối code của thuật toán muốn sử dụng
+
+BƯỚC 3: Thay đổi đường dẫn tệp input và output
+- Tại hàm main gần cuối chương trình, thay đổi địa chỉ fi (filename input) và fo (filename output)
+- Có thể sử dụng 3 test case có sẵn trong thư mục testcases
+
+BƯỚC 4: Có thể thiết lập thời gian tối đa cho phép chạy chương trình
+- Tại hàm main gần cuối chương trình, tìm khối code khởi tạo process
+- Thay đổi giá trị timeout tại dòng code p.join để thay đổi thời gian tối đa
