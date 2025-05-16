@@ -256,15 +256,14 @@ def solve_CNF(grid, algorithm, result_queue):
     result_queue.put({"solution": solution, "time": end_time - start_time})
 
 def main(timeout = 120):
-    test_case = int(input("Enter test case (number): "))
+    test_case = int(input("\nEnter test case (number): "))
     fi = f"testcases/input_{test_case}.txt"
     fo = f"testcases/output_{test_case}.txt"
     grid = read_input(fi)
     results = dict()
     q = Queue()
-    print("\n")
     # ---------------- PY-SAT ----------------
-    print("Running pySAT...")
+    print("\nRunning pySAT...")
     p1 = Process(target=solve_CNF, args=(grid, "pySAT", q))
     p1.start()
     p1.join(timeout=timeout)

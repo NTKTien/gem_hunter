@@ -1,0 +1,25 @@
+----- pySAT -----
+1, T, T, 3, T, 1, 1, T
+G, 3, 5, T, G, 1, 1, 1
+2, T, 3, T, 3, 2, 2, 1
+T, G, 4, G, 3, T, T, 2
+G, T, G, T, G, 4, T, 3
+G, T, 3, 3, T, 3, 2, T
+T, 3, 3, 4, T, G, G, G
+G, 2, T, T, 2, 1, 1, T
+Execution time: 0.0002179146s
+
+----- Brute Force -----
+TIMEOUT
+
+----- Backtracking -----
+1, T, T, 3, T, 1, 1, T
+G, 3, 5, T, G, 1, 1, 1
+2, T, 3, T, 3, 2, 2, 1
+T, G, 4, G, 3, T, T, 2
+G, T, G, T, G, 4, T, 3
+G, T, 3, 3, T, 3, 2, T
+T, 3, 3, 4, T, G, G, G
+G, 2, T, T, 2, 1, 1, T
+Execution time: 0.0018086433s
+
