@@ -117,7 +117,7 @@ def brute_force(grid):
     empty_cells = find_empty_cells(grid)
     # Su dung day bits de tao tat ca cac hoan vi
     bits = len(empty_cells)
-    print(f"Number of empty cells: {bits}")
+    # print(f"Number of empty cells: {bits}")
     # Kiem tra tat ca cac hoan vi
     for bits in range(2 ** len(empty_cells)):
         for k in range(len(empty_cells)):
