@@ -177,7 +177,7 @@ def SAT_solver(grid):
 
 def run_algorithm(fi, fo):
     # Gioi han stack
-    sys.setrecursionlimit(100000)
+    sys.setrecursionlimit(1000)
     
     # Doc du lieu tu tep vao mang
     grid = read_input(fi)
@@ -185,44 +185,44 @@ def run_algorithm(fi, fo):
     # Bat dau thoi gian
     start_time = time.time()
     
-    # # ---------------- PY-SAT ----------------
-    # # Uncomment khoi nay de su dung pySAT
-    # try:
-    #     is_possible, solution = SAT_solver(grid)
-    #     if is_possible:
-    #         print(f"SAT SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}")
-    #         write_output(fo, solution)
-    #     else:
-    #         print("NO SOLUTION WITH SAT\n")
-    # except RecursionError:
-    #     print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}.")
-    #     return
+    # ---------------- PY-SAT ----------------
+    # Uncomment khoi nay de su dung pySAT
+    try:
+        is_possible, solution = SAT_solver(grid)
+        if is_possible:
+            print(f"SAT SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}s")
+            write_output(fo, solution)
+        else:
+            print("NO SOLUTION WITH SAT\n")
+    except RecursionError:
+        print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}s")
+        return
     
     # # # ---------------- BRUTE FORCE ----------------
     # # Uncomment khoi nay de su dung Brute Force    
     # try:
     #     is_possible, solution = brute_force(grid)
     #     if is_possible:
-    #         print(f"BRUTE FORCE SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}")
+    #         print(f"BRUTE FORCE SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}s")
     #         write_output(fo, solution)
     #     else:
     #         print("NO SOLUTION WITH BRUTE FORCE\n")
     # except RecursionError:
-    #     print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}.")
+    #     print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}s")
     #     return
     
-    # ---------------- BACKTRACKING ----------------
-    # Uncomment khoi nay de su dung Backtracking
-    try:
-        is_possible, solution = backtracking(grid, find_empty_cells(grid), 0)
-        if is_possible:
-            print(f"BACKTRACKING SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}")
-            write_output(fo, solution)
-        else:
-            print("NO SOLUTION WITH BACKTRACKING\n")
-    except RecursionError:
-        print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}.")
-        return
+    # # ---------------- BACKTRACKING ----------------
+    # # Uncomment khoi nay de su dung Backtracking
+    # try:
+    #     is_possible, solution = backtracking(grid, find_empty_cells(grid), 0)
+    #     if is_possible:
+    #         print(f"BACKTRACKING SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}s")
+    #         write_output(fo, solution)
+    #     else:
+    #         print("NO SOLUTION WITH BACKTRACKING\n")
+    # except RecursionError:
+    #     print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}s")
+    #     return
 
 def main():
     # Gan ten tep
@@ -232,11 +232,11 @@ def main():
     # Khoi tao process
     p = Process(target=run_algorithm, args=(fi, fo))
     p.start()
-    p.join(timeout=120) # Thoi gian cho phep chay thuat toan
+    p.join(timeout=30) # Thoi gian cho phep chay thuat toan
 
     if p.is_alive():
         p.terminate()
-        print("RUNNING TIME TOO LONG. TIME OUT: 120s")
+        print("RUNNING TIME TOO LONG. TIME OUT: 30s")
     else:
         print("RUN SUCCESSFULLY")
 
