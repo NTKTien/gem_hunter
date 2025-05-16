@@ -117,6 +117,7 @@ def brute_force(grid):
     empty_cells = find_empty_cells(grid)
     # Su dung day bits de tao tat ca cac hoan vi
     bits = len(empty_cells)
+    print(f"Number of empty cells: {bits}")
     # Kiem tra tat ca cac hoan vi
     for bits in range(2 ** len(empty_cells)):
         for k in range(len(empty_cells)):
@@ -187,6 +188,7 @@ def run_algorithm(fi, fo):
     
     # ---------------- PY-SAT ----------------
     # Uncomment khoi nay de su dung pySAT
+    print("RUNNING SAT SOLVER...")
     try:
         is_possible, solution = SAT_solver(grid)
         if is_possible:
@@ -200,6 +202,7 @@ def run_algorithm(fi, fo):
     
     # # # ---------------- BRUTE FORCE ----------------
     # # Uncomment khoi nay de su dung Brute Force    
+    # print("RUNNING BRUTE FORCE...")
     # try:
     #     is_possible, solution = brute_force(grid)
     #     if is_possible:
@@ -213,6 +216,7 @@ def run_algorithm(fi, fo):
     
     # # ---------------- BACKTRACKING ----------------
     # # Uncomment khoi nay de su dung Backtracking
+    # print("RUNNING BACKTRACKING...")
     # try:
     #     is_possible, solution = backtracking(grid, find_empty_cells(grid), 0)
     #     if is_possible:
@@ -226,17 +230,17 @@ def run_algorithm(fi, fo):
 
 def main():
     # Gan ten tep
-    fi = "input_2.txt" # de bai
-    fo = "output_2.txt" # loi giai
+    fi = "input_7.txt" # de bai
+    fo = "output_7.txt" # loi giai
     
     # Khoi tao process
     p = Process(target=run_algorithm, args=(fi, fo))
     p.start()
-    p.join(timeout=30) # Thoi gian cho phep chay thuat toan
+    p.join(timeout=60) # Thoi gian cho phep chay thuat toan
 
     if p.is_alive():
         p.terminate()
-        print("RUNNING TIME TOO LONG. TIME OUT: 30s")
+        print("TIMEOUT: MAXIMUM EXECUTION TIME IS 60s")
     else:
         print("RUN SUCCESSFULLY")
 
