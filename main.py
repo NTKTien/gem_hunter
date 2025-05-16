@@ -8,14 +8,18 @@ from multiprocessing import Process, Queue
 # Doc du lieu tu tep, tra ve mang
 def read_input(filename):
     grid = []
-    with open(filename, "r") as f:
-        lines = f.readlines()
-        for line in lines:
-            row = line.strip().split(", ")
-            for i in range(len(row)):
-                if row[i].isdigit():
-                    row[i] = int(row[i])
-            grid.append(row)
+    try:
+        with open(filename, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                row = line.strip().split(", ")
+                for i in range(len(row)):
+                    if row[i].isdigit():
+                        row[i] = int(row[i])
+                grid.append(row)
+    except FileNotFoundError:
+        print(f"File {filename} not found, this test case does not exist\n")
+        sys.exit(1)
     return grid
 
 # Tim o trong xung quanh mot vi tri
@@ -373,9 +377,10 @@ def solve_CNF(grid, algorithm, result_queue):
     print(f"Execution time: {(end_time - start_time):.10f}s")
     result_queue.put({"solution": solution, "time": end_time - start_time})
 
-def main(timeout = 60):
-    fi = "input_3.txt" # file input
-    fo = "output_3.txt" # file output
+def main(timeout = 120):
+    test_case = int(input("Enter test case (number): "))
+    fi = f"testcases/input_{test_case}.txt"
+    fo = f"testcases/output_{test_case}.txt"
     grid = read_input(fi)
     results = dict()
     q = Queue()
@@ -438,4 +443,4 @@ def main(timeout = 60):
     print(f"Results written to {fo}.")
 
 if __name__ == "__main__":
-    main(timeout = 60)
+    main(timeout = 120)

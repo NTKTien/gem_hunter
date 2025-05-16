@@ -4,4 +4,4 @@ BƯỚC 2: Thay đổi đường dẫn tệp input và output
 - Tại hàm main gần cuối chương trình, thay đổi địa chỉ fi (filename input) và fo (filename output)
 - Có thể sử dụng 3 test case có sẵn trong thư mục testcases
 
-BƯỚC 3: Thiết lập thời gian timeout tại hàm main
+BƯỚC 3: Thiết lập thời gian timeout tại nơi định nghĩa hàm main và hàm main
