@@ -205,8 +205,8 @@ def backtracking_solve(CNF_original):
             model_neg = model.copy()
             model_neg.append(-next_var)
             return DPLL_solve(simplify_CNF(CNF, -next_var), model_neg)
-        # CAC MENH DE DA THOA MAN
-        return model 
+        # KHONG TIM THAY MENH DE THOA MAN
+        return None 
         
     # Chay thuat toan DPLL
     return DPLL_solve(CNF, [])

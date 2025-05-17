@@ -6,7 +6,7 @@ T, 2, 2, T, 1, 1, 1
 2, T, 3, 2, 2, 1, 1
 2, 2, 3, T, 1, 1, T
 1, T, 2, G, 1, 1, 1
-Execution time: 0.0001404285s
+Execution time: 0.0014872551s
 
 ----- Brute Force -----
 T, 2, G, T, 2, T, T
@@ -16,7 +16,7 @@ T, 2, 2, T, 1, 1, 1
 2, T, 3, 2, 2, 1, 1
 2, 2, 3, T, 1, 1, T
 1, T, 2, G, 1, 1, 1
-Execution time: 0.6744847298s
+Execution time: 1.0290369987s
 
 ----- Backtracking -----
 T, 2, G, T, 2, T, T
@@ -26,5 +26,5 @@ T, 2, 2, T, 1, 1, 1
 2, T, 3, 2, 2, 1, 1
 2, 2, 3, T, 1, 1, T
 1, T, 2, G, 1, 1, 1
-Execution time: 0.0003521442s
+Execution time: 0.0005352497s
 
