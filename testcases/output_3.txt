@@ -19,7 +19,7 @@ T, T, 4, 2, 2, 2, 3, T, T, G, T, 5, T, 4, 3, 2, G, T, 3, T
 T, T, 3, 1, G, G, T, G, 5, 5, T, 4, T, T, T, 2, 2, 2, G, 1
 T, 4, 3, T, 2, 2, G, T, T, T, 3, 3, 5, T, T, 2, 1, T, G, 1
 2, T, 2, 1, G, T, G, 2, G, 2, 2, T, 3, T, G, 1, 1, 2, T, 1
-Execution time: 0.0008494854s
+Execution time: 0.0012352467s
 
 ----- Brute Force -----
 TIMEOUT
@@ -45,5 +45,5 @@ T, T, 4, 2, 2, 2, 3, T, T, G, T, 5, T, 4, 3, 2, G, T, 3, T
 T, T, 3, 1, G, G, T, G, 5, 5, T, 4, T, T, T, 2, 2, 2, G, 1
 T, 4, 3, T, 2, 2, G, T, T, T, 3, 3, 5, T, T, 2, 1, T, G, 1
 2, T, 2, 1, G, T, G, 2, G, 2, 2, T, 3, T, G, 1, 1, 2, T, 1
-Execution time: 0.0855123997s
+Execution time: 0.0840330124s
 
