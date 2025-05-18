@@ -1,12 +1,12 @@
 import matplotlib.pyplot as plt
 
-k_values = [4, 10, 15, 18, 24]
-times = [0.00049, 0.00506, 0.10618, 0.89278, 52.08326]
+k_values = [8, 12, 18]
+times = [0.0003049374, 0.0025827885, 0.6744847298]
 
 plt.plot(k_values, times, marker='o', color='red')
-plt.xlabel('Number of empty cells (k)')
+plt.xlabel('Number of empty cells')
 plt.ylabel('Running time (seconds)')
-plt.title('The dependency of Running time on the Number of empty cells with Brute Force')
+plt.title('Running time & Number of empty cells with Brute Force')
 plt.grid(True)
 plt.yscale('log')
 plt.show()

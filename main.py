@@ -3,26 +3,24 @@ from pysat.solvers import Glucose3
 import time
 import copy
 import sys
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 
 # Doc du lieu tu tep, tra ve mang
 def read_input(filename):
     grid = []
-    with open(filename, "r") as f:
-        lines = f.readlines()
-        for line in lines:
-            row = line.strip().split(", ")
-            for i in range(len(row)):
-                if row[i].isdigit():
-                    row[i] = int(row[i])
-            grid.append(row)
+    try:
+        with open(filename, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                row = line.strip().split(", ")
+                for i in range(len(row)):
+                    if row[i].isdigit():
+                        row[i] = int(row[i])
+                grid.append(row)
+    except FileNotFoundError:
+        print(f"File {filename} not found, this test case does not exist\n")
+        sys.exit(1)
     return grid
-
-# Ghi du lieu ra tep
-def write_output(filename, grid):
-    with open(filename, "w") as f:
-        for row in grid:
-            f.write(", ".join(map(str, row)) + "\n")  
 
 # Tim o trong xung quanh mot vi tri
 def find_empty_cells_around(grid, pos):
@@ -50,12 +48,12 @@ def find_empty_cells_around_dict(grid):
                     empty_cells_dict[(i, j)] = empty_cells
     return empty_cells_dict
 
-# Ma hoa vi tri (i, j) thanh so nguyen
+# Ma hoa vi tri (i, j) thanh so thu tu neu mang duoc xem nhu mot mang 1 chieu
 def encode_pos(pos, grid):
     return pos[0] * len(grid[0]) + pos[1] + 1 # tranh 0
 
 # Phat sinh CNF
-def generate_CNFs(grid):
+def generate_CNF(grid):
     empty_cells_dict = find_empty_cells_around_dict(grid)
     CNFs = []
     for pos, empty_cells in empty_cells_dict.items():
@@ -82,167 +80,244 @@ def generate_CNFs(grid):
                 CNFs.append([encode_pos(empty_cell, grid) for empty_cell in combination])
     return CNFs
 
-# Tra ve true khi so luong T xung quanh vi tri (i, j) khop voi trong so
-def is_consistent(grid):
-    for i in range(len(grid)):
-        for j in range(len(grid[i])):
-            # Voi moi o co trong so, neu so luong T xung quanh khong khop thi model khong phu hop
-            if type(grid[i][j]) == int:
-                # Dem so luong T xung quanh vi tri (i, j)
-                num_traps = 0
-                for dx in range(-1, 2):
-                    for dy in range(-1, 2):
-                        if dx == 0 and dy == 0:
-                            continue
-                        neighbor = (i + dx, j + dy)
-                        if 0 <= neighbor[0] < len(grid) and 0 <= neighbor[1] < len(grid[neighbor[0]]):
-                            if grid[neighbor[0]][neighbor[1]] == "T":
-                                num_traps += 1
-                empty_cells = find_empty_cells_around(grid, (i, j))
-                if num_traps > grid[i][j] or num_traps + len(empty_cells) < grid[i][j]:
-                    return False
-    return True
-
-# Tra ve mang cac vi tri o trong
-def find_empty_cells(grid):
-    empty_cells = []
-    for i in range(len(grid)):
-        for j in range(len(grid[i])):
-            if grid[i][j] == "_":
-                empty_cells.append((i, j))
-    return empty_cells
-
-def brute_force(grid):
-    # Dem so o trong
-    empty_cells = find_empty_cells(grid)
+# Giai CNF bang Brute Force
+def brute_force_solve(CNF_original):
+    # Tao ban sao CNF
+    CNF = copy.deepcopy(CNF_original)
+    # Lap danh sach bien logic
+    variables = set()
+    for clause in CNF:
+        for literal in clause:
+            variables.add(abs(literal)) 
+    variables = list(variables)
+    num_variables = len(variables)
+    # Kiem tra model
+    def check_model(CNF, model):
+        for clause in CNF:
+            satisfied = False
+            for literal in clause:
+                if literal in model: # Mot bien logic thoa man, ca menh de thoa man (OR)
+                    satisfied = True
+                    break      
+            if not satisfied:  # Mot menh de khong thoa man, ca CNF khong thoa man (AND)
+                return False
+        return True
     # Su dung day bits de tao tat ca cac hoan vi
-    bits = len(empty_cells)
-    # print(f"Number of empty cells: {bits}")
-    # Kiem tra tat ca cac hoan vi
-    for bits in range(2 ** len(empty_cells)):
-        for k in range(len(empty_cells)):
-            # 1 la T, 0 la G
+    for bits in range(2 ** num_variables):
+        model = [] 
+        for k in range(num_variables):
+             # 1 la T (+), 0 la G(-)
             if (bits >> k) & 1:
-                grid[empty_cells[k][0]][empty_cells[k][1]] = "T"
+                model.append(variables[k])
             else:
-                grid[empty_cells[k][0]][empty_cells[k][1]] = "G"
-        # Kiem tra tinh hop le
-        if is_consistent(grid):
-            return True, grid
-    return False, None
+                model.append(-variables[k])
+        # Tra ve model hop le
+        if check_model(CNF, model):
+            return model
+    return None
 
+# Giai CNF bang backtracking
+def backtracking_solve(CNF_original):
+    # Tao ban sao CNF
+    CNF = copy.deepcopy(CNF_original)
+    # Lap danh sach bien logic
+    variables = set()
+    for clause in CNF:
+        for literal in clause:
+            variables.add(abs(literal))
+    variables = list(variables)
+    
+    # Don gian hoa CNF khi mot gia tri duoc xac dinh
+    def simplify_CNF(CNF, literal):
+        new_CNF = []
+        for clause in CNF:
+            if literal in clause: # Luoc cac menh de da thoa man
+                continue
+            new_clause = [lit for lit in clause if lit != -literal]
+            new_CNF.append(new_clause)
+        return new_CNF
+    
+    def DPLL_solve(CNF, model):
+        if not CNF: # Tra ve model khi tat ca menh de da duoc thoa man
+            return model
+        if any(len(clause) == 0 for clause in CNF): # Khong the thoa man CNF neu co menh de rong
+            return None
+        # LUOC MENH DE DON
+        change = True
+        while change:
+            change = False
+            unit_clauses = [clause[0] for clause in CNF if len(clause) == 1]
+            if not unit_clauses: # Khong con menh de don
+                break
+            # Xu ly cac menh de don
+            for unit in unit_clauses:
+                if -unit in model: # Mau thuan
+                    return None
+                if unit in model: # Da xac dinh
+                    continue
+                model.append(unit) # Bat buoc mang gia tri tuong ung de thoa man
+                CNF = simplify_CNF(CNF, unit) # Don gian hoa CNF
+                change = True # Danh dau da thay doi
+                # Kiem tra lai sau khi don gian hoa
+                if not CNF:
+                    return model
+                if any(len(clause) == 0 for clause in CNF):
+                    return None
+        # TIM CAC BIEN LOGIC CHI XUAT HIEN MOT DANG
+        all_literals = [literal for clause in CNF for literal in clause]
+        pure_literals = []
+        for var in variables:
+            if var not in model and -var not in model: # Chua xac dinh
+                pos_appears = var in all_literals
+                neg_appears = -var in all_literals
+                if pos_appears != neg_appears: # Chi xuat hien mot dang
+                    pure_literals.append(var if pos_appears else -var)
+        # Gan gia tri cho cac bien logic chi xuat hien mot dang
+        if pure_literals:
+            for pure in pure_literals:
+                model.append(pure)
+                CNF = simplify_CNF(CNF, pure)
+            # Kiem tra lai sau khi don gian hoa
+            if not CNF:
+                return model
+        # DE QUY CHON BIEN LOGIC
+        # Neu CNF van con, chon bien de phan nhanh
+        if CNF:
+            # Dem so lan xuat hien cua cac bien logic chua xac dinh
+            var_counts = {}
+            for clause in CNF:
+                for literal in clause:
+                    var = abs(literal)
+                    if var not in model and -var not in model:
+                        var_counts[var] = var_counts.get(var, 0) + 1
+            if not var_counts: # Tat ca bien da duoc xac dinh
+                return model
+            # Chon bien xuat hien nhieu nhat
+            next_var = max(var_counts.items(), key=lambda x: x[1])[0]
+            # Thu voi dang +
+            model_pos = model.copy()
+            model_pos.append(next_var)
+            new_model = DPLL_solve(simplify_CNF(CNF, next_var), model_pos)
+            if new_model is not None:
+                return new_model
+            
+            # Thu voi dang -
+            model_neg = model.copy()
+            model_neg.append(-next_var)
+            return DPLL_solve(simplify_CNF(CNF, -next_var), model_neg)
+        # KHONG TIM THAY MENH DE THOA MAN
+        return None 
+        
+    # Chay thuat toan DPLL
+    return DPLL_solve(CNF, [])
 
-# De quy quay lui tim giai phap
-def backtracking(grid, empty_cells, index):
-    # Kiem tra khi da gan gia tri cho tat ca o trong
-    if index == len(empty_cells):
-        return is_consistent(grid), grid
-    # Lay vi tri o trong
-    i, j = empty_cells[index]
-    # Gia su (i, j) la G    
-    grid[i][j] = "G"
-    if is_consistent(grid):
-        result, solution = backtracking(grid, empty_cells, index + 1)
-        if result:
-            return True, solution
-    # Gia su (i, j) la T
-    grid[i][j] = "T"
-    if is_consistent(grid):
-        result, solution = backtracking(grid, empty_cells, index + 1)
-        if result:
-            return True, solution
-    # Neu khong co giai phap, tra lai o trong
-    grid[i][j] = "_"
-    return False, None
-
-def SAT_solver(grid):
-    # Tao CNFs
-    cnfs = generate_CNFs(grid)
-    # Them cac menh de rang buoc
-    solver = Glucose3()
-    for cnf in cnfs:
-        solver.add_clause(cnf)
-    # Gan gia tri neu tim duoc solution
-    if solver.solve():
-        model = solver.get_model()
-        for i in range(len(grid)):
-            for j in range(len(grid[0])):
-                if grid[i][j] == "_":
-                    e = encode_pos((i, j), grid)
-                    if e in model:
-                        grid[i][j] = "T"
-                    else:
-                        grid[i][j] = "G"
-        return True, grid
-    return False, None
-
-def run_algorithm(fi, fo):
-    # Gioi han stack
-    sys.setrecursionlimit(1000)
-    
-    # Doc du lieu tu tep vao mang
-    grid = read_input(fi)
-    
-    # Bat dau thoi gian
-    start_time = time.time()
-    
-    # ---------------- PY-SAT ----------------
-    # Uncomment khoi nay de su dung pySAT
-    print("RUNNING SAT SOLVER...")
-    try:
-        is_possible, solution = SAT_solver(grid)
-        if is_possible:
-            print(f"SAT SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}s")
-            write_output(fo, solution)
-        else:
-            print("NO SOLUTION WITH SAT\n")
-    except RecursionError:
-        print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}s")
-        return
-    
-    # # # ---------------- BRUTE FORCE ----------------
-    # # Uncomment khoi nay de su dung Brute Force    
-    # print("RUNNING BRUTE FORCE...")
-    # try:
-    #     is_possible, solution = brute_force(grid)
-    #     if is_possible:
-    #         print(f"BRUTE FORCE SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}s")
-    #         write_output(fo, solution)
-    #     else:
-    #         print("NO SOLUTION WITH BRUTE FORCE\n")
-    # except RecursionError:
-    #     print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}s")
-    #     return
-    
-    # # ---------------- BACKTRACKING ----------------
-    # # Uncomment khoi nay de su dung Backtracking
-    # print("RUNNING BACKTRACKING...")
-    # try:
-    #     is_possible, solution = backtracking(grid, find_empty_cells(grid), 0)
-    #     if is_possible:
-    #         print(f"BACKTRACKING SOLUTION FOUND\nEXECUTION TIME: {(time.time() - start_time):.10f}s")
-    #         write_output(fo, solution)
-    #     else:
-    #         print("NO SOLUTION WITH BACKTRACKING\n")
-    # except RecursionError:
-    #     print(f"Thuat toan bi tran stack tai {(time.time() - start_time):.10f}s")
-    #     return
-
-def main():
-    # Gan ten tep
-    fi = "testcases/input_1.txt" # de bai
-    fo = "output_1.txt" # loi giai
-    
-    # Khoi tao process
-    p = Process(target=run_algorithm, args=(fi, fo))
-    p.start()
-    p.join(timeout=60) # Thoi gian cho phep chay thuat toan
-
-    if p.is_alive():
-        p.terminate()
-        print("TIMEOUT!")
+# Giai CNF theo thuat toan da chon va tra ket qua vao hang doi
+def solve_CNF(grid, algorithm, result_queue):
+    CNF = generate_CNF(grid)
+    model = []
+    solution = copy.deepcopy(grid)
+    start_time = 0
+    end_time = 0
+    # Chay thuat toan
+    if algorithm == "pySAT":
+        start_time = time.time()
+        solver = Glucose3()
+        for clause in CNF:
+            solver.add_clause(clause)
+        # Gan gia tri neu tim duoc solution
+        if solver.solve():
+            model = solver.get_model()
+        end_time = time.time()    
+    elif algorithm == "Brute Force":
+        start_time = time.time()
+        model = brute_force_solve(CNF)
+        end_time = time.time()
+    elif algorithm == "Backtracking":
+        start_time = time.time()
+        model = backtracking_solve(CNF)
+        end_time = time.time()
     else:
-        print("RUN SUCCESSFULLY")
+        raise ValueError("Invalid algorithm. Choose 'pySAT', 'Brute Force' or 'Backtracking'.")
+    # Chuyen model thanh ma tran
+    if model:
+        for i in range(len(solution)):
+            for j in range(len(solution[i])):
+                if solution[i][j] == "_":
+                    e = encode_pos((i, j), solution)
+                    if e in model:
+                        solution[i][j] = "T"
+                    else:
+                        solution[i][j] = "G"
+        print(f"{algorithm} solution found")
+    else:
+        print(f"No solution found with {algorithm}")
+        solution = None
+    print(f"Execution time: {(end_time - start_time):.10f}s")
+    result_queue.put({"solution": solution, "time": end_time - start_time})
+
+def main(timeout = 120):
+    test_case = int(input("\nEnter test case (number): "))
+    fi = f"testcases/input_{test_case}.txt"
+    fo = f"testcases/output_{test_case}.txt"
+    grid = read_input(fi)
+    results = dict()
+    q = Queue()
+    # ---------------- PY-SAT ----------------
+    print("\nRunning pySAT...")
+    p1 = Process(target=solve_CNF, args=(grid, "pySAT", q))
+    p1.start()
+    p1.join(timeout=timeout)
+    if p1.is_alive():
+        p1.terminate()
+        print(f"TIMEOUT!\n")
+        results["pySAT"] = "TIMEOUT"
+    else:
+        print("Run successfully\n")
+        results["pySAT"] = q.get()
+    
+    # ---------------- BRUTE FORCE ----------------
+    print("Running Brute Force...")
+    p2 = Process(target=solve_CNF, args=(grid, "Brute Force", q))
+    p2.start()
+    p2.join(timeout=timeout)
+    if p2.is_alive():
+        p2.terminate()
+        print(f"TIMEOUT!\n")
+        results["Brute Force"] = "TIMEOUT"
+    else:
+        print("Run successfully\n")
+        results["Brute Force"] = q.get()
+    
+    # ---------------- BACKTRACKING ----------------
+    print("Running Backtracking...")
+    p3 = Process(target=solve_CNF, args=(grid, "Backtracking", q))
+    p3.start()
+    p3.join(timeout=timeout)
+    if p3.is_alive():
+        p3.terminate()
+        print(f"TIMEOUT!\n")
+        results["Backtracking"] = "TIMEOUT"
+    else:
+        print("Run successfully\n")
+        results["Backtracking"] = q.get()
+        
+    # ---------------- GHI RA FILE ----------------
+    with open(fo, "w") as f:
+        for algorithm in results:
+            f.write(f"----- {algorithm} -----\n")
+            if results[algorithm] == "TIMEOUT":
+                f.write("TIMEOUT\n")
+            else:
+                solution = results[algorithm]["solution"]
+                if solution:
+                    for row in solution:
+                        f.write(", ".join(map(str, row)) + "\n")
+                else:
+                    f.write("No solution found\n")
+                f.write(f"Execution time: {results[algorithm]['time']:.10f}s\n")
+            f.write("\n")
+            
+    print(f"Results written to {fo}.")
 
 if __name__ == "__main__":
-    main()
+    main(timeout = 120)
